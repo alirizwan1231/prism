@@ -1,0 +1,200 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Default palette: Volt Night (palette #1). The boot script in <head> and the
+   ThemeProvider overwrite these variables when a saved palette exists. */
+:root {
+  --bg: #0a0f0a;
+  --surface: #121a12;
+  --surface2: #1a261a;
+  --ink: #f2f5ec;
+  --muted: #9db08f;
+  --accent: #b8f135;
+  --accent2: #2ef2a0;
+  --on-accent: #0a0f0a;
+  /* Derived tokens — always follow the active palette */
+  --line: color-mix(in srgb, var(--ink) 14%, transparent);
+  --shadow: color-mix(in srgb, var(--bg) 55%, transparent);
+  --shadow-accent: color-mix(in srgb, var(--accent) 38%, transparent);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface2) var(--bg);
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--surface2);
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+/* ---- Theme repaint transition -------------------------------------------
+   Every painted surface eases between palettes, so a switch feels like the
+   whole site repainting. Elements with their own Tailwind transition classes
+   (transforms, hovers) override this via class specificity. */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, fill, stroke,
+    box-shadow;
+  transition-duration: 0.6s, 0.6s, 0.35s, 0.6s, 0.6s, 0.6s;
+  transition-timing-function: ease;
+}
+
+/* ---- Colour-wash sweep on palette switch ---- */
+.wash-sweep {
+  position: fixed;
+  inset: -12% -30%;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0.32;
+  transform: translateX(-115%) skewX(-8deg);
+  animation: washSweep 0.9s cubic-bezier(0.65, 0, 0.25, 1) forwards;
+}
+@keyframes washSweep {
+  0% {
+    transform: translateX(-115%) skewX(-8deg);
+  }
+  100% {
+    transform: translateX(115%) skewX(-8deg);
+  }
+}
+
+/* ---- Toast pop ---- */
+.toast-pop {
+  animation: toastPop 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes toastPop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -10px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+/* ---- Scroll reveal ---- */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.6s ease,
+    border-color 0.6s ease,
+    color 0.35s ease;
+  transition-delay: var(--d, 0ms), var(--d, 0ms), 0ms, 0ms, 0ms;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---- Poster type helpers ---- */
+.text-outline {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--ink);
+}
+.text-outline-accent {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--accent);
+}
+@media (max-width: 640px) {
+  .text-outline,
+  .text-outline-accent {
+    -webkit-text-stroke-width: 1.3px;
+  }
+}
+
+/* ---- Backdrops: precision grid + grain, both painted from vars ---- */
+.grid-bg {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--ink) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--ink) 5%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+}
+
+/* ---- Marquee ---- */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marqueeMove 26s linear infinite;
+}
+@keyframes marqueeMove {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* ---- Palette card selected ring pulse ---- */
+@keyframes ringPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px var(--accent), 0 18px 44px var(--shadow);
+  }
+  50% {
+    box-shadow: 0 0 0 5px var(--accent), 0 18px 44px var(--shadow);
+  }
+}
+.palette-active {
+  animation: ringPulse 2.4s ease-in-out infinite;
+}
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+  .marquee-track {
+    animation: none;
+  }
+}
